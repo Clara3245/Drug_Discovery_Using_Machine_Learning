@@ -1,53 +1,45 @@
-# Import necessary libraries
+import os
 import pandas as pd
-from chembl_webresource_client.new_client import new_client
+from functions import search_target, fetch_bioactivity_data, preprocess_bioactivity_data, classify_bioactivity
 
-# Target search for pancreas
-target = new_client.target
-target_query = target.search('pancreas')  # Search for 'pancreas' in ChEMBL
-targets = pd.DataFrame.from_dict(target_query)  # Convert the result to a DataFrame
+'''
+If you're working on a new project and it has similar requirements, 
+you can reuse the same environment by activating it (run in the terminal: "conda activate bioinformatics").
+'''
 
-# Select and retrieve bioactivity data for Human pancreas (7th entry)
-selected_target = targets.target_chembl_id[6]  # Select the 7th target (index 6)
-activity = new_client.activity  # Initialize activity resource
-res = activity.filter(target_chembl_id=selected_target).filter(standard_type="IC50")  # Filter activity data for IC50
-df = pd.DataFrame.from_dict(res)  # Convert the result to a DataFrame
+def main():
+    # Create a data folder if it doesn't exist
+    data_folder = "data"
+    os.makedirs(data_folder, exist_ok=True)
 
-# Save raw bioactivity data to CSV
-df.to_csv('pancreaticlipase_01_bioactivity_data_raw.csv', index=False)
+    # Step 1: Search for pancreas-related targets
+    targets = search_target('pancreas')
+    targets.to_csv(os.path.join(data_folder, 'pancreas_targets.csv'), index=False)
 
-# Drop rows with missing values in 'canonical_smiles' or 'standard_value'
-df2 = df.dropna(subset=['canonical_smiles', 'standard_value'])
+    # Step 2: Select the 7th target (index 6) and fetch bioactivity data
+    selected_target = targets.target_chembl_id[6]
+    bioactivity_data = fetch_bioactivity_data(selected_target)
+    raw_data_path = os.path.join(data_folder, 'pancreaticlipase_01_bioactivity_data_raw.csv')
+    bioactivity_data.to_csv(raw_data_path, index=False)
 
-# Print the number of unique 'canonical_smiles'
-print(len(df2.canonical_smiles.unique()))
+    # Step 3: Preprocess the bioactivity data
+    preprocessed_data = preprocess_bioactivity_data(bioactivity_data)
+    preprocessed_data_path = os.path.join(data_folder, 'pancreaticlipase_02_bioactivity_data_preprocessed.csv')
+    preprocessed_data.to_csv(preprocessed_data_path, index=False)
 
-# Remove duplicate rows based on 'canonical_smiles'
-df2_nr = df2.drop_duplicates(['canonical_smiles'])
+    # Step 4: Classify bioactivity based on IC50 values
+    bioactivity_classes = classify_bioactivity(preprocessed_data)
+    curated_data = pd.concat([preprocessed_data, bioactivity_classes], axis=1)
+    curated_data_path = os.path.join(data_folder, 'pancreaticlipase_03_bioactivity_data_curated.csv')
+    curated_data.to_csv(curated_data_path, index=False)
 
-# Select relevant columns for further analysis
-selection = ['molecule_chembl_id', 'canonical_smiles', 'standard_value']
-df3 = df2_nr[selection]  # Create a new DataFrame with selected columns
+    # Print summary
+    print(f"Raw bioactivity data saved to: {raw_data_path}")
+    print(bioactivity_data.head(10))
+    print(f"Preprocessed bioactivity data saved to: {preprocessed_data_path}")
+    print(preprocessed_data)
+    print(f"Curated bioactivity data with classifications saved to: {curated_data_path}")
+    print(curated_data)
 
-# Save the preprocessed bioactivity data to CSV
-df3.to_csv('pancreaticlipase_02_bioactivity_data_preprocessed.csv', index=False)
-
-# Load the preprocessed data from CSV
-df4 = pd.read_csv('pancreaticlipase_02_bioactivity_data_preprocessed.csv')
-
-# Classify bioactivity based on IC50 values
-bioactivity_threshold = []  # List to store bioactivity classifications
-for i in df4.standard_value:
-    if float(i) >= 10000:  # IC50 >= 10000 is considered inactive
-        bioactivity_threshold.append("inactive")
-    elif float(i) <= 1000:  # IC50 <= 1000 is considered active
-        bioactivity_threshold.append("active")
-    else:  # IC50 between 1000 and 10000 is considered intermediate
-        bioactivity_threshold.append("intermediate")
-
-# Create a new column 'class' for the bioactivity classification
-bioactivity_class = pd.Series(bioactivity_threshold, name='class')
-df5 = pd.concat([df4, bioactivity_class], axis=1)  # Add the new column to the DataFrame
-
-# Save the curated bioactivity data to CSV
-df5.to_csv('pancreaticlipase_03_bioactivity_data_curated.csv', index=False)
+if __name__ == "__main__":
+    main()
