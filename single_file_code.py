@@ -2,11 +2,11 @@
 import pandas as pd
 import numpy as np
 import sys
-import seaborn as sns
-import matplotlib.pyplot as plt
+# import seaborn as sns
+# import matplotlib.pyplot as plt
 from chembl_webresource_client.new_client import new_client
-from rdkit import Chem
-from rdkit.Chem import Descriptors, Lipinski
+# from rdkit import Chem
+# from rdkit.Chem import Descriptors, Lipinski
 
 # Target search for pancreas
 target = new_client.target
@@ -24,9 +24,6 @@ df.to_csv('pancreaticlipase_01_bioactivity_data_raw.csv', index=False)
 
 # Drop rows with missing values in 'canonical_smiles' or 'standard_value'
 df2 = df.dropna(subset=['canonical_smiles', 'standard_value'])
-
-# Print the number of unique 'canonical_smiles'
-print(len(df2.canonical_smiles.unique()))
 
 # Remove duplicate rows based on 'canonical_smiles'
 df2_nr = df2.drop_duplicates(['canonical_smiles'])

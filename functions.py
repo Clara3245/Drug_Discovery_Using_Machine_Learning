@@ -17,17 +17,30 @@ def fetch_bioactivity_data(target_chembl_id, standard_type="IC50"):
     res = activity.filter(target_chembl_id=target_chembl_id).filter(standard_type=standard_type)
     return pd.DataFrame.from_dict(res)
 
+def convert_data(df):
+    """
+    Convert the result to a DataFrame
+    """
+    return pd.DataFrame.from_dict(df) 
+
 def preprocess_bioactivity_data(df):
     """
     Preprocess the bioactivity data:
     - Remove rows with missing values
     - Drop duplicates based on 'canonical_smiles'
     - Select relevant columns
+    - Convert 'standard_value' to numeric
     """
     df_clean = df.dropna(subset=['canonical_smiles', 'standard_value'])
     df_clean = df_clean.drop_duplicates(['canonical_smiles'])
     selection = ['molecule_chembl_id', 'canonical_smiles', 'standard_value']
-    return df_clean[selection]
+    df_clean = df_clean[selection]
+    
+    # Ensure 'standard_value' is numeric
+    df_clean['standard_value'] = pd.to_numeric(df_clean['standard_value'], errors='coerce')
+    df_clean.reset_index(drop=True, inplace=True)
+    return df_clean
+
 
 def classify_bioactivity(df, threshold_active=1000, threshold_inactive=10000):
     """
@@ -37,11 +50,12 @@ def classify_bioactivity(df, threshold_active=1000, threshold_inactive=10000):
     - Intermediate: Otherwise
     """
     bioactivity_threshold = []
-    for value in df['standard_value']:
+    for value in df.standard_value:
         if float(value) >= threshold_inactive:
             bioactivity_threshold.append("inactive")
         elif float(value) <= threshold_active:
             bioactivity_threshold.append("active")
         else:
             bioactivity_threshold.append("intermediate")
+
     return pd.Series(bioactivity_threshold, name='class')
