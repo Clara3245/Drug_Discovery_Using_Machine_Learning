@@ -1,5 +1,22 @@
 import pandas as pd
+import numpy as np
 from chembl_webresource_client.new_client import new_client
+from rdkit import Chem
+from rdkit.Chem import Descriptors, Lipinski
+
+
+# def search_target(query, filter):
+#     """
+#     Search for targets using ChEMBL API.
+#     """
+#     target = new_client.target
+#     target_query = target.search(query)
+#     if filter == 'y':
+#         filtered_target_query = target_query.filter(organism='Homo sapiens')
+#     else:
+#         filtered_target_query = target_query
+
+#     return pd.DataFrame.from_dict(filtered_target_query)
 
 def search_target(query):
     """
@@ -59,3 +76,69 @@ def classify_bioactivity(df, threshold_active=1000, threshold_inactive=10000):
             bioactivity_threshold.append("intermediate")
 
     return pd.Series(bioactivity_threshold, name='class')
+
+def clean_canonical_smiles(df):
+    smiles = []
+    for i in df.canonical_smiles.tolist():
+        cpd = str(i).split('.')
+        cpd_longest = max(cpd, key = len)
+        smiles.append(cpd_longest)
+
+    return pd.Series(smiles, name = 'canonical_smiles')
+
+def lipinski(smiles, verbose=False):
+
+    moldata= []
+    for elem in smiles:
+        mol=Chem.MolFromSmiles(elem) 
+        moldata.append(mol)
+       
+    baseData= np.arange(1,1)
+    i=0  
+    for mol in moldata:        
+       
+        desc_MolWt = Descriptors.MolWt(mol)
+        desc_MolLogP = Descriptors.MolLogP(mol)
+        desc_NumHDonors = Lipinski.NumHDonors(mol)
+        desc_NumHAcceptors = Lipinski.NumHAcceptors(mol)
+           
+        row = np.array([desc_MolWt,
+                        desc_MolLogP,
+                        desc_NumHDonors,
+                        desc_NumHAcceptors])   
+    
+        if(i==0):
+            baseData=row
+        else:
+            baseData=np.vstack([baseData, row])
+        i=i+1      
+    
+    columnNames=["MW","LogP","NumHDonors","NumHAcceptors"]   
+    descriptors = pd.DataFrame(data=baseData,columns=columnNames)
+    
+    return descriptors
+
+def pIC50(input):
+    pIC50 = []
+
+    for i in input['standard_value_norm']:
+        molar = i*(10**-9) # Converts nM to M
+        pIC50.append(-np.log10(molar))
+
+    input['pIC50'] = pIC50
+    x = input.drop('standard_value_norm', 1)
+        
+    return x
+
+def norm_value(input, norm_value = 100000000):
+    norm = []
+
+    for i in input['standard_value']:
+        if i > norm_value:
+          i = norm_value
+        norm.append(i)
+
+    input['standard_value_norm'] = norm
+    x = input.drop('standard_value', axis = 1)
+        
+    return x
