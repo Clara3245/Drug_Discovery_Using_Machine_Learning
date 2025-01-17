@@ -2,6 +2,7 @@ import os
 import pandas as pd
 # from functions import search_target, fetch_bioactivity_data, convert_data, preprocess_bioactivity_data, classify_bioactivity
 from functions import *
+from plots import *
 
 '''
 If you're working on a new project and it has similar requirements, 
@@ -44,32 +45,53 @@ def main():
     curated_data.to_csv(curated_data_path, index=False)
 
     # Print summary Part 1
-    print(targets)
-    print(f"Raw bioactivity data saved to: {data_frame_path}")
-    print(data_frame)
-    print(f"Preprocessed bioactivity data saved to: {preprocessed_data_path}")
-    print(preprocessed_data)
-    print(f"Curated bioactivity data with classifications saved to: {curated_data_path}")
-    print(curated_data)
+    # print(targets)
+    # print(f"Raw bioactivity data saved to: {data_frame_path}")
+    # print(data_frame)
+    # print(f"Preprocessed bioactivity data saved to: {preprocessed_data_path}")
+    # print(preprocessed_data)
+    # print(f"Curated bioactivity data with classifications saved to: {curated_data_path}")
+    # print(curated_data)
 
-    # ########### PART 2: EXPLORATORY DATA ANALYSIS ###########
-    # # Step 1: Clean canonical smiles column
-    # df_no_smiles = curated_data.drop(columns='canonical_smiles')
-    # smiles = clean_canonical_smiles(curated_data)
-    # df_clean_smiles = pd.concat([df_no_smiles,smiles], axis=1)
+    ########### PART 2: EXPLORATORY DATA ANALYSIS ###########
+    # Step 1: Clean canonical smiles column
+    df_no_smiles = curated_data.drop(columns='canonical_smiles')
+    smiles = clean_canonical_smiles(curated_data)
+    df_clean_smiles = pd.concat([df_no_smiles,smiles], axis=1)
 
-    # # Step 2: Calculate Lipinski descriptors
-    # df_lipinski = lipinski(df_clean_smiles.canonical_smiles)
+    # Step 2: Calculate Lipinski descriptors
+    df_lipinski = lipinski(df_clean_smiles.canonical_smiles)
 
-    # # Step 3: Combine data frames
-    # df_combined = pd.concat([curated_data,df_lipinski], axis=1)
+    # Step 3: Combine data frames
+    df_combined = pd.concat([curated_data,df_lipinski], axis=1)
 
-    # # Step 4: Convert IC50 to pIC50
-    # df_norm = norm_value(df_combined)
-    # df_final = pIC50(df_norm)
+    # Step 4: Convert IC50 to pIC50
+    df_norm = norm_value(df_combined)
+    df_final = pIC50(df_norm)
+    df_final_path = os.path.join(data_folder, formatted_target_name + '_04_bioactivity_data_3class_pIC50.csv')
+    df_final.to_csv(df_final_path, index=False)
 
-    # # Step 5: Save data
-    # df_final.to_csv('_04_bioactivity_data_3class_pIC50.csv')
+    # Step 5: Remove intermidiate
+    df_2class = df_final[df_final['class'] != 'intermediate']
+    df_final_path = os.path.join(data_folder, formatted_target_name + '_05_bioactivity_data_2class_pIC50.csv')
+    df_2class.to_csv(df_final_path, index=False)
+
+    # Step 6: Plot results
+    frequency_plot('class', df_2class)
+    scatter_plot('MW','LogP',df_2class,'class','pIC50')
+
+    box_plot('class','pIC50',df_2class)
+    box_plot('class','MW',df_2class)
+    box_plot('class','LogP',df_2class)
+    box_plot('class','NumHDonors',df_2class)
+    box_plot('class','NumHAcceptors',df_2class)
+
+    # Step 8: Statistical analysis
+    mannwhitney('pIC50', df_2class)
+    mannwhitney('MW',df_2class)
+    mannwhitney('LogP',df_2class)
+    mannwhitney('NumHDonors',df_2class)
+    mannwhitney('NumHAcceptors',df_2class) 
 
 
 
