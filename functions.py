@@ -25,14 +25,6 @@ def fetch_bioactivity_data(target_chembl_id, standard_type="IC50"):
         standard_type=standard_type)
     return pd.DataFrame.from_dict(res)
 
-
-def convert_data(df):
-    """
-    Convert the result to a DataFrame
-    """
-    return pd.DataFrame.from_dict(df)
-
-
 def preprocess_bioactivity_data(df):
     """
     Preprocess the bioactivity data:
