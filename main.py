@@ -85,5 +85,24 @@ def main(
     mannwhitney('NumHDonors',df_2class)
     mannwhitney('NumHAcceptors',df_2class) 
 
+    ########### PART 3: DESCRIPTOR DATA PREPARATION ###########
+    # Step 1: Load PaDEL-Descriptor
+    # run_bash_command("! wget https://github.com/dataprofessor/bioinformatics/raw/master/padel.zip")
+    # run_bash_command("! unzip padel.zip")
+
+    selection = ['canonical_smiles','molecule_chembl_id']
+    df3_selection = df_final[selection] # df_final = pd.read_csv(f'{data_folder}/{formatted_target_name}_04_bioactivity_data_3class_pIC50.csv')
+    df3_selection.to_csv('molecule.smi', sep='\t', index=False, header=False)
+
+    run_bash_command("! bash padel.sh")
+
+    df3_X = pd.read_csv('data/descriptors_output.csv')
+    df3_X = df3_X.drop(columns=['Name'])
+    df3_Y = df_final['pIC50']
+    dataset3 = pd.concat([df3_X,df3_Y], axis=1)
+    dataset3.to_csv(f'{data_folder}/{formatted_target_name}_06_bioactivity_data_3class_pIC50_pubchem_fp.csv', index=False)
+
+    print("main ran successfully!")
+
 if __name__ == "__main__":
     main()

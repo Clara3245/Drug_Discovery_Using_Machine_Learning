@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import subprocess
 from chembl_webresource_client.new_client import new_client
 from rdkit import Chem
 from rdkit.Chem import Descriptors, Lipinski
@@ -171,3 +172,17 @@ def mannwhitney(descriptor, data,  verbose=False):
     results.to_csv(filename)
 
     return results
+
+def run_bash_command(command):
+    try:
+        print(f"Running command: {command}")
+        result = subprocess.run(command, shell=True, capture_output=True, text=True, check=True)  # check=True will raise an exception on non-zero exit status
+        print(f"Command succeeded: {result.stdout}")
+        return result.stdout  # return the output of the bash command
+    except subprocess.CalledProcessError as e:
+        print(f"Error occurred while running command: {command}")
+        print(f"stderr: {e.stderr}")
+        return e.stderr  # return the error output if command fails
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return str(e)
