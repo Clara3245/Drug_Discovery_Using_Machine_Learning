@@ -1,13 +1,13 @@
 import os
 import pandas as pd
-# from functions import search_target, fetch_bioactivity_data, convert_data, preprocess_bioactivity_data, classify_bioactivity
 from functions import *
 from plots import *
 
 '''
 If you're working on a new project and it has similar requirements, 
-you can reuse the same environment by activating it (run in the terminal: "conda activate bioinformatics").
+you can reuse the same environment by activating it (run in the terminal: "conda activate drug_discovery").
 Check environment packages with "conda list"
+If environment not working run: "source ~/.zshrc"
 '''
 
 def main(

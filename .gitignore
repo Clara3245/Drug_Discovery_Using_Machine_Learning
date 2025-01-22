@@ -1,0 +1,45 @@
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+env/
+venv/
+*.env/
+*.venv/
+conda-env/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# VSCode settings
+.vscode/
+
+# macOS system files
+.DS_Store
+
+# IDE-specific files
+.idea/
+
+# Logs
+*.log
+
+# Python egg and distribution files
+*.egg
+*.egg-info
+dist/
+build/
+*.manifest
+*.spec
+
+# pytest
+.cache/
+nosetests.xml
+coverage.xml
+*.cover
+*.hypothesis/
+
+# Jupyter Notebook config
+ipynb_checkpoints/
