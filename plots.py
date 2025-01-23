@@ -31,3 +31,15 @@ def box_plot(x_label,y_label,data):
     plt.ylabel(y_label, fontsize=14, fontweight='bold')
 
     plt.savefig(f'plots/box_plot_{y_label}.png')
+
+def regplot_plot(x_label, y_label, Y_test, Y_pred):
+    plt.figure(figsize=(5.5, 5.5))
+    sns.set(color_codes=True)
+    sns.set_style("white")
+
+    ax = sns.regplot(x=Y_test, y=Y_pred, scatter_kws={'alpha': 0.4})
+    ax.set_xlabel(x_label, fontsize='large', fontweight='bold')
+    ax.set_ylabel(y_label, fontsize='large', fontweight='bold')
+    ax.set_xlim(0, 12)
+    ax.set_ylim(0, 12)
+    plt.savefig(f'plots/regplot_plot_{y_label.replace(" ", "")}.png')

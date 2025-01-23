@@ -1,2 +1,2 @@
-,Descriptor,Statistics,p,alpha,Interpretation
-0,NumHDonors,2251.0,0.46611716917531776,0.05,Same distribution (fail to reject H0)
+Descriptor,Statistics,p,alpha,Interpretation
+NumHDonors,2251.0,0.46611716917531776,0.05,Same distribution (fail to reject H0)

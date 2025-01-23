@@ -1,3 +1,4 @@
+# Update the environment with: conda env update --file environment.yml --prune
 name: drug_discovery
 channels:
   - defaults
